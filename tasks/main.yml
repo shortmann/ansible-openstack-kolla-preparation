@@ -1,0 +1,73 @@
+---
+# tasks file for ansible-openstack-kolla-preparation
+- name: install rpm dependencies for kolla
+  become: true
+  yum:
+    name:
+      - python-devel
+      - libffi-devel
+      - gcc
+      - openssl-devel
+      - libselinux-python
+      - python-virtualenv
+
+- name: install python dependencies for kolla
+  pip:
+    name:
+      - pip
+      - ansible
+      - kolla-ansible
+    virtualenv: "{{ ansible_env.HOME }}/.venv"
+    extra_args: -U
+
+# needs refactoring, because of the users group name
+- name: create kolla config folder
+  become: true
+  file:
+    path: "/etc/kolla"
+    state: directory
+    group: "{{ kolla_group }}"
+    owner: "{{ kolla_user }}"
+
+- name: create folder for ansible default config
+  become: true
+  file:
+    path: "/etc/ansible"
+    state: directory
+
+- name: add ansible default config
+  copy:
+    src: ansible.cfg
+    dest: /etc/ansible/ansible.cfg
+
+- name: copy default passwords config to /etc
+  copy:
+    src: "{{ ansible_env.HOME }}/.venv/share/kolla-ansible/etc_examples/kolla/passwords.yml"
+    dest: "/etc/kolla/passwords.yml"
+    remote_src: true
+  register: passwords
+
+- name: generate passwords for OpenStack services
+  when: passwords.changed  # noqa 503
+  command: "{{ ansible_env.HOME }}/.venv/bin/kolla-genpwd"
+
+- name: create folder for inventory files
+  file:
+    path: "{{ ansible_env.HOME }}/kolla"
+    state: directory
+
+- name: copy default inventory config to $HOME/kolla
+  with_items:
+    - src: "{{ ansible_env.HOME }}/.venv/share/kolla-ansible/ansible/inventory/all-in-one"
+      dest: "{{ ansible_env.HOME }}/kolla/all-in-one"
+    - src: "{{ ansible_env.HOME }}/.venv/share/kolla-ansible/ansible/inventory/multinode"
+      dest: "{{ ansible_env.HOME }}/kolla/multinode"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+
+- name: configure kolla
+  template:
+    src: "globals.yml.j2"
+    dest: "/etc/kolla/globals.yml"

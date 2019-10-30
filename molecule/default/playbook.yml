@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    kolla_user: root
+    kolla_group: root
+  roles:
+    - role: ansible-openstack-kolla-preparation

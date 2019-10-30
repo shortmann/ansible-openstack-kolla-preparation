@@ -1,0 +1,9 @@
+---
+# defaults file for ansible-openstack-kolla-preparation
+kolla_user: molecule
+kolla_group: molecule
+kolla_base_distro: centos
+kolla_install_type: source
+kolla_openstack_release: rocky
+kolla_network_interface: eth0
+kolla_neutron_external_interface: eth1
