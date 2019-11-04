@@ -36,6 +36,7 @@
     state: directory
 
 - name: add ansible default config
+  become: true
   copy:
     src: ansible.cfg
     dest: /etc/ansible/ansible.cfg
