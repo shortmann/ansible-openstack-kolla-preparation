@@ -27,6 +27,16 @@ passed in as parameters) is always nice for users too:
       roles:
          - { role: ansible-openstack-kolla-preparation }
 
+
+Tests
+-----
+
+You can test the role with molecule
+```sh
+molecule test
+```
+
+
 License
 -------
 
